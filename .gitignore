@@ -1,2 +1,8 @@
 .pioenvs
 .piolibdeps
+*~
+*.o
+run_*
+cover
+coverage.info
+report
