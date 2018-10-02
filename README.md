@@ -6,17 +6,17 @@ live setup, using e.g. the bass drum as audio source and feeding a
 sequencer with the generated MIDI clock. In this way, the drummer is
 free to play her own tempo, and the electronics are following. 
 
-The platform used is a Raspberry Pi. There might be cheaper solutions,
-but I had an old Pi 1 lying around, and I couldn't get the audio
-sampling and beat prediction running at the same time on an
-Arduino. 
+The platform used will be an Arduino Micro/Leonardo. The beat
+detection part is mostly taken care of by an Analog
+circuit. Schematics and PCB layout files will follow soon.
 
 ## I/O
 
 The box has the following inputs and outputs:
 
-* Power supply (5V/1A micro USB)
-* Audio trigger in (6.3 mm jac)
+* Power supply (5V micro USB)
+* Audio trigger in (6.3 mm jack)
+* Audio trigger in (XLR, optional)
 * Foot switch in (6.3 mm jack, optional)
 * Sensitivity potentiometer
 * Lag/lead potentiometer
