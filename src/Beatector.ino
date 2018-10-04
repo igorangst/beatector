@@ -41,11 +41,14 @@ void setup() {
 void loop() {
     timer.update();
 
-    if (changed){
-        time now = millis();
-        if (now - changed >= 4 && !digitalRead(beatPin)){
-            beatQ.push(changed);
-            newEvents = true;
+		// beat detection
+		if (changed){
+
+	  // debounce		
+	  time now = millis();
+	  if (now - changed >= 4 && !digitalRead(beatPin)){
+		beatQ.push(changed);
+		newEvents = true;
             Serial.print("beat@");
             Serial.println(changed);
             changed = 0;
@@ -124,12 +127,12 @@ long predict(){
 
     // If there hasn't been a beat close to now,
     // use the current time as pivot element
-    time lastBeat = beatQ.peek()
-    if (period > 0 && (beatQ.peek() < now - period / 4)){
+    time lastBeat = beatQ.back();
+    if (period > 0 && (lastBeat < now - period / 4)){
         pivot = now;
         virtualPivot = 1;
     } else {
-        pivot = beatQ.peek();
+        pivot = lastBeat;
     }
 
     // shrink beat queue
@@ -137,11 +140,11 @@ long predict(){
         beatQ.pop();
     }
 
-    // remove too old events
+    // remove too old events (2 bars at curent bpm)
     if (period > 0 && now > 8*period){
         time horizon = now - 8*period;
-        while (beatQ.peek() < horizon)
-            beatQ.pop();
+        while (beatQ.front() < horizon)
+		    beatQ.pop();
     }
     Serial.println(beatQ.size());
 
@@ -178,7 +181,7 @@ long predict(){
         time ht = periods[i] / 2;
 
         long e = 0;
-        for (int j=0; j<beatQ.size(); ++j){
+        for (int j=0; j<beatQ.size() - 1 + virtualPivot; ++j){
             long d = pivot - beatQ.at(j);
             e += cmodsq(d, ht);
         }
@@ -189,10 +192,13 @@ long predict(){
         Serial.println(e);
     }
 
-    // find 3 best scores
+    // find K best scores (or the best on the first run)
+    int K = 3;
+    if (period == 0)
+      K = 1;
     unsigned long tScore;
     unsigned long tPeriod;
-    for (int k=0; k<3; ++k){
+    for (int k=0; k<K; ++k){
         for (int i=nPeriods-2; i>=k; --i){
             if (scores[i] > scores[i+1]){
                 tScore = scores[i];
@@ -211,13 +217,13 @@ long predict(){
     unsigned long minDist = abs(periods[0] - period);
     unsigned long period = periods[0];
     for (int i=1; i<3; ++i){
-        unsigned long dist = abs(periods[i] - period);
-        if (dist < minDist){
-            minDist = dist;
-            period = periods[i];
-        }
+      unsigned long dist = abs(periods[i] - period);
+      if (dist < minDist){
+        minDist = dist;
+        period = periods[i];
+      }
     }
-
+    
     int bpm = 60000 / period;
     Serial.print(bpm);
     Serial.println(" bpm");

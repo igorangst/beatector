@@ -27,10 +27,8 @@ The box has the following inputs and outputs:
 
 ## Resources
 
-[https://learn.adafruit.com/raspberry-pi-analog-to-digital-converters/mcp3008]
-[https://github.com/halherta/RaspberryPi-mcp3008Spi]
-[http://hertaville.com/interfacing-an-spi-adc-mcp3008-chip-to-the-raspberry-pi-using-c.html]
-[https://github.com/scottellis/mcp3008-poll]
+* [Arduino MIDI tutorial](https://www.arduino.cc/en/Tutorial/Midi)
+* [Peak detector circuit](http://afrotechmods.com/tutorials/2011/11/28/peak-detector-circuit-tutorial/)
 
 ## Parts
 
