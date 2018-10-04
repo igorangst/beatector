@@ -21,11 +21,17 @@ TARGETS=$(addprefix run_, $(TESTS))
 INCL=-Isrc -Ilib/FQueue -I$(UNITY)/src 
 
 
-.PHONY: all clean run_tests build coverflags
+.PHONY: all clean test build upload run_tests build coverflags
 
-default all: Unity clean run_tests
+default all: build
 
-Unity:
+build:
+	pio run
+
+upload: 
+	pio run --target upload
+
+Unity/src:
 	git submodule init
 	git submodule update
 
@@ -35,14 +41,13 @@ test/%_Runner.c: test/%.cpp
 run_%: $(SRCS) test/%.cpp test/%_Runner.c
 	$(CC) $(CFLAGS) $(INCL) $(SRCS) test/$*.cpp test/$*_Runner.c -o $@
 
+test: Unity/src clean run_tests
+
 run_tests: $(TARGETS)
 	@for TEST in $(TARGETS); do		\
 		echo Running $${TEST};		\
 		./$${TEST};			\
 	done					
-
-build:
-	pio run
 
 coverflags:
 	$(eval CFLAGS += -O0 --coverage)

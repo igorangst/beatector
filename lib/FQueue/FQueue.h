@@ -8,7 +8,8 @@ public:
     
     void push(const unsigned long element);
     unsigned long pop();
-    unsigned long peek() const;
+    unsigned long front() const;
+    unsigned long back() const;
     unsigned long at(const int idx) const;
     bool full() const;
     bool empty() const;

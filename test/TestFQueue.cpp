@@ -44,7 +44,7 @@ void testPushAndPeekOneElement(void)
 {
     FQueue q(32, buf);
     q.push(42);
-    TEST_ASSERT_EQUAL(42, q.peek());
+    TEST_ASSERT_EQUAL(42, q.front());
 }
 
 void testPushingAddsOneElement(void)
@@ -80,10 +80,66 @@ void testPopEmptyIsZero(void)
     TEST_ASSERT_EQUAL(0, q.pop());
 }
 
-void testPeekEmptyIsZero(void)
+void testFrontEmptyIsZero(void)
 {
     FQueue q(32, buf);
-    TEST_ASSERT_EQUAL(0, q.peek());
+    TEST_ASSERT_EQUAL(0, q.front());
+}
+
+void testBackEmptyIsZero(void)
+{
+    FQueue q(32, buf);
+    TEST_ASSERT_EQUAL(0, q.back());
+}
+
+void testPoppingInOrderFrontIsOldest(void)
+{
+    FQueue q(32, buf);
+    for (int i=0; i<10; ++i){
+	q.push(i);
+    }
+    for (int i=0; i<10; ++i){
+	TEST_ASSERT_EQUAL(i, q.front());
+        q.pop();
+    }
+}
+
+void testFrontIsIndexZero(void)
+{
+    FQueue q(32, buf);
+    for (int i=0; i<10; ++i){
+	q.push(i);
+        TEST_ASSERT_EQUAL(q.at(0), q.front());
+    }
+    for (int i=0; i<10; ++i){
+	TEST_ASSERT_EQUAL(q.at(0), q.front());
+        q.pop();
+    }
+}
+
+void testPoppingInOrderBackIsNewest(void)
+{
+    FQueue q(32, buf);
+    for (int i=0; i<10; ++i){
+	q.push(i);
+    }
+    for (int i=0; i<10; ++i){
+	TEST_ASSERT_EQUAL(9, q.back());
+        q.pop();
+    }
+}
+
+void testBackIsHighestIndex(void)
+{
+    FQueue q(32, buf);
+    for (int i=0; i<10; ++i){
+	q.push(i);
+        TEST_ASSERT_EQUAL(q.at(q.size()-1), q.back());
+    }
+    for (int i=0; i<10; ++i){
+	TEST_ASSERT_EQUAL(q.at(q.size()-1), q.back());
+        q.pop();
+    }
 }
 
 void testFillQueue(void)
@@ -102,7 +158,7 @@ void testDroppingAtBack(void)
     for (int i=0; i<33; ++i){
 	q.push(i);
     }
-    TEST_ASSERT_EQUAL(1, q.peek());    
+    TEST_ASSERT_EQUAL(1, q.front());    
 }
 
 void testLookupElementsByIndex(void)
@@ -127,5 +183,4 @@ void testLookupOutOfRangeIsZero(void)
 	TEST_ASSERT_EQUAL(0, q.at(i));
     }    
 }
-   
    

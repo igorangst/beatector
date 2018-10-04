@@ -52,17 +52,27 @@ unsigned long FQueue::pop()
         return 0;
     }
     --_size;
-    unsigned long back = _buf[_rptr];
+    unsigned long front = _buf[_rptr];
     _rptr = (_rptr + 1) % _capacity;
-    return back;
+    return front;
 }
 
-unsigned long FQueue::peek() const
+// returns oldest element
+unsigned long FQueue::front() const
 {
     if (empty()){
         return 0;
     }
     return _buf[_rptr];
+}
+
+// returns newest element
+unsigned long FQueue::back() const
+{
+    if (empty()){
+        return 0;
+    }
+    return _buf[(_wptr - 1) % _capacity];
 }
 
 unsigned long FQueue::at(const int idx) const
