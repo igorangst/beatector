@@ -21,7 +21,24 @@ The box has the following inputs and outputs:
 * Sensitivity potentiometer
 * Lag/lead potentiometer
 * Stop/arm push button
-* Tap push button (optional)
-* Mode switch (optional)
+* Tap push button? (optional)
 * MIDI output
 * LEDs: beat detect, beat predict, Status: stopped/armed/rolling
+
+## Resources
+
+[https://learn.adafruit.com/raspberry-pi-analog-to-digital-converters/mcp3008]
+[https://github.com/halherta/RaspberryPi-mcp3008Spi]
+[http://hertaville.com/interfacing-an-spi-adc-mcp3008-chip-to-the-raspberry-pi-using-c.html]
+[https://github.com/scottellis/mcp3008-poll]
+
+## Parts
+
+* Arduino Micro/Leonardo
+* Power supply (micro USB, 5V)
+* 2x 6.3 mm jack socket
+* MIDI socket (5 PIN DIN 180 degrees)
+* 2x linear pots, 50k will do 
+* Push button
+* 3x LEDs 
+ 
