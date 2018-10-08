@@ -3,6 +3,17 @@
 
 const int metronomePin  = 13;  // Metronome LED
 const int beatPin       = 3;   // Detected beat
+const int statusPin     = 4;   // Stopped = on / armed = blinking / rolling = off
+const int buttonPin     = 2;   // Arm / stop push button
+
+// Global state machine
+enum State {
+	STOPPED,
+	ARMED,
+	ROLLING
+};
+State state;
+
 
 // Beat predictor
 typedef unsigned long time;
@@ -11,68 +22,116 @@ FQueue        beatQ(16, beats);
 time          period;
 Timer         timer;
 bool          newEvents;
-bool          initState;
 
 // metronome
 bool   metronomeState = false;
 time   metronomeTime  = 0;
 
-time   changed = 0;
+// variables used for debouncing
+time   beatChanged = 0;
+time   buttonChanged = 0;
+time   blink = 0;
 
-// interrupt service routine
-void detect() {
-    changed = millis();
+// interrupt service routines
+void detectBeat() {
+	beatChanged = millis();
+}
+
+void detectButton() {
+	buttonChanged = millis();
 }
 
 void setup() {
     // initialize serial communications at 9600 bps:
     Serial.begin(9600);
-    
+
+		state = STOPPED;
     period = 0;
     newEvents = false;
-    initState = true;
     
     pinMode(metronomePin, OUTPUT);
+		pinMode(statusPin, OUTPUT);
     pinMode(beatPin, INPUT_PULLUP);
+		pinMode(buttonPin, INPUT_PULLUP);
     
-    attachInterrupt(digitalPinToInterrupt(beatPin), detect, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(beatPin), detectBeat, CHANGE);
+		attachInterrupt(digitalPinToInterrupt(buttonPin), detectButton, CHANGE);
 }
+
+void checkBeat(){
+	if (beatChanged){
+
+		// debounce		
+		time now = millis();
+		if (now - beatChanged >= 4 && !digitalRead(beatPin)){
+			beatChanged = 0;
+			if (state != STOPPED) {
+				beatQ.push(beatChanged);
+				newEvents = true;
+			}
+			Serial.print("beat@");
+			Serial.println(beatChanged);
+		}
+	}
+}
+
+void checkButton(){
+	if (buttonChanged){
+
+		// debounce		
+		time now = millis();
+		if (now - buttonChanged >= 4 && !digitalRead(buttonPin)){
+			buttonChanged = 0;
+			if (state == STOPPED) {
+				state = ARMED;
+				digitalWrite(statusPin, LOW);
+				blink = millis();
+			} else {
+				state = STOPPED;
+				digitalWrite(statusPin, HIGH);
+			}
+		}
+	}
+}
+
 
 void loop() {
     timer.update();
 
-		// beat detection
-		if (changed){
-
-	  // debounce		
-	  time now = millis();
-	  if (now - changed >= 4 && !digitalRead(beatPin)){
-		beatQ.push(changed);
-		newEvents = true;
-            Serial.print("beat@");
-            Serial.println(changed);
-            changed = 0;
-        }
-    }
+		checkBeat();
+		checkButton();				
     
-    if (initState && newEvents){
+    if (state == ARMED && newEvents){
         if (beatQ.size() >= 4){
-            initState = false;
+					  state = ROLLING;
+						digitalWrite(statusPin, LOW);
             newEvents = false;
             period = predict();
             timer.after(period, schedule);
         }
-    }
+    }		
 
+		time now = millis();						
     if (metronomeState){
-        time now = millis();
         if (now - metronomeTime > 40){
             digitalWrite(metronomePin, LOW);
         }
     }
+
+		if (state == ARMED){
+			if (now - blink >= 100) {
+				digitalWrite(statusPin, LOW);
+				blink = now;
+			} else if (now - blink >= 50) {
+				digitalWrite(statusPin, HIGH);
+			}
+		}
 }
 
-void schedule(){  
+void schedule(){
+
+	// TODO: Stop?
+	
     digitalWrite(metronomePin, HIGH);
     metronomeState = true;
     unsigned long now = millis();
