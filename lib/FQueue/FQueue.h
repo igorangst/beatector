@@ -15,6 +15,7 @@ public:
     bool empty() const;
     int size() const;
     int capacity() const;
+    void flush();
     
 private:
     unsigned long *_buf;

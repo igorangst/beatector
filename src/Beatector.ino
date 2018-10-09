@@ -1,9 +1,9 @@
 #include <Timer.h>
 #include <FQueue.h>
 
-const int metronomePin  = 13;  // Metronome LED
+const int metronomePin  = 15;  // Metronome LED
 const int beatPin       = 3;   // Detected beat
-const int statusPin     = 4;   // Stopped = on / armed = blinking / rolling = off
+const int statusPin     = 14;  // Stopped = on / armed = blinking / rolling = off
 const int buttonPin     = 2;   // Arm / stop push button
 
 // Global state machine
@@ -48,12 +48,14 @@ void setup() {
 		state = STOPPED;
     period = 0;
     newEvents = false;
-    
+
     pinMode(metronomePin, OUTPUT);
 		pinMode(statusPin, OUTPUT);
     pinMode(beatPin, INPUT_PULLUP);
 		pinMode(buttonPin, INPUT_PULLUP);
-    
+
+    digitalWrite(statusPin, HIGH);
+
     attachInterrupt(digitalPinToInterrupt(beatPin), detectBeat, CHANGE);
 		attachInterrupt(digitalPinToInterrupt(buttonPin), detectButton, CHANGE);
 }
@@ -61,16 +63,16 @@ void setup() {
 void checkBeat(){
 	if (beatChanged){
 
-		// debounce		
+		// debounce
 		time now = millis();
-		if (now - beatChanged >= 4 && !digitalRead(beatPin)){
-			beatChanged = 0;
+		if (now - beatChanged >= 5 && digitalRead(beatPin)){
 			if (state != STOPPED) {
 				beatQ.push(beatChanged);
 				newEvents = true;
 			}
 			Serial.print("beat@");
 			Serial.println(beatChanged);
+      beatChanged = 0;
 		}
 	}
 }
@@ -80,7 +82,7 @@ void checkButton(){
 
 		// debounce		
 		time now = millis();
-		if (now - buttonChanged >= 4 && !digitalRead(buttonPin)){
+		if (now - buttonChanged >= 5 && digitalRead(buttonPin)){
 			buttonChanged = 0;
 			if (state == STOPPED) {
 				state = ARMED;
@@ -99,8 +101,8 @@ void loop() {
     timer.update();
 
 		checkBeat();
-		checkButton();				
-    
+		checkButton();
+
     if (state == ARMED && newEvents){
         if (beatQ.size() >= 4){
 					  state = ROLLING;
@@ -109,9 +111,9 @@ void loop() {
             period = predict();
             timer.after(period, schedule);
         }
-    }		
+    }
 
-		time now = millis();						
+		time now = millis();
     if (metronomeState){
         if (now - metronomeTime > 40){
             digitalWrite(metronomePin, LOW);
@@ -130,28 +132,31 @@ void loop() {
 
 void schedule(){
 
-	// TODO: Stop?
-	
+  if (state == STOPPED){
+    digitalWrite(metronomePin, LOW);
+    beatQ.flush();
+  } else {
     digitalWrite(metronomePin, HIGH);
     metronomeState = true;
     unsigned long now = millis();
     metronomeTime = now;
-    
+
     if (newEvents){
-        newEvents = false;
-        period = predict();
+      newEvents = false;
+      period = predict();
     }
     Serial.print("[BEAT] period:");
     Serial.println(period);
 
     if (period == 0)
-        return;
-    
+      return;
+
     time elapsed = now - beatQ.at(0);
     if (elapsed < period / 4)
-        timer.after(period - elapsed, schedule);
-    else 
-        timer.after(period, schedule);
+      timer.after(period - elapsed, schedule);
+    else
+      timer.after(period, schedule);
+  }
 }
 
 const time MAX_PERIOD = 60000 / 86;
@@ -169,7 +174,7 @@ time frame(time period){
 
 long cmodsq(time a, time m){
   long r = a % m;
-  if (r < m/2)
+  if (r < (long)m/2)
     return sq(r);
   return sq(m - r);
 }
@@ -205,11 +210,11 @@ long predict(){
         while (beatQ.front() < horizon)
 		    beatQ.pop();
     }
-    Serial.println(beatQ.size());
+    // Serial.println(beatQ.size());
 
     // keep current bpm if there are too few recent events
     int n = beatQ.size();
-    if (n < 2) 
+    if (n < 4) 
         return period;
 
     // collect inter-event differences as candidate periods
@@ -230,8 +235,8 @@ long predict(){
             }
         }
     }
-    Serial.print("#guesses = ");
-    Serial.println(nPeriods);
+    //Serial.print("#guesses = ");
+    //Serial.println(nPeriods);
 
     // evaluate guessed periods
     for (int i=0; i<nPeriods; ++i){
@@ -245,10 +250,10 @@ long predict(){
             e += cmodsq(d, ht);
         }
         scores[i] = e;
-        Serial.print("guess = ");
-        Serial.println(periods[i]);
-        Serial.print("score = ");
-        Serial.println(e);
+        /* Serial.print("guess = "); */
+        /* Serial.println(periods[i]); */
+        /* Serial.print("score = "); */
+        /* Serial.println(e); */
     }
 
     // find K best scores (or the best on the first run)
@@ -275,18 +280,18 @@ long predict(){
     // choose the one closest to the current period
     unsigned long minDist = abs(periods[0] - period);
     unsigned long period = periods[0];
-    for (int i=1; i<3; ++i){
+    for (int i=1; i<K; ++i){
       unsigned long dist = abs(periods[i] - period);
       if (dist < minDist){
         minDist = dist;
         period = periods[i];
       }
     }
-    
+
     int bpm = 60000 / period;
     Serial.print(bpm);
     Serial.println(" bpm");
-  
+
     return period;
 }
 

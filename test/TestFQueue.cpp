@@ -7,13 +7,13 @@ void setUp(void)
 {
     // prefill buffer with dummy value
     for (int i=0; i<32; ++i){
-	buf[i] = 0xaa;
+      buf[i] = 0xaa;
     }
 }
 
 void tearDown(void)
 {
-    
+
 }
 
 void testEmptyAfterCreation(void)
@@ -67,10 +67,10 @@ void testPoppingInOrder(void)
 {
     FQueue q(32, buf);
     for (int i=0; i<10; ++i){
-	q.push(i);
+      q.push(i);
     }
     for (int i=0; i<10; ++i){
-	TEST_ASSERT_EQUAL(i, q.pop());
+      TEST_ASSERT_EQUAL(i, q.pop());
     }
 }
 
@@ -96,11 +96,11 @@ void testPoppingInOrderFrontIsOldest(void)
 {
     FQueue q(32, buf);
     for (int i=0; i<10; ++i){
-	q.push(i);
+      q.push(i);
     }
     for (int i=0; i<10; ++i){
-	TEST_ASSERT_EQUAL(i, q.front());
-        q.pop();
+      TEST_ASSERT_EQUAL(i, q.front());
+      q.pop();
     }
 }
 
@@ -108,12 +108,12 @@ void testFrontIsIndexZero(void)
 {
     FQueue q(32, buf);
     for (int i=0; i<10; ++i){
-	q.push(i);
-        TEST_ASSERT_EQUAL(q.at(0), q.front());
+      q.push(i);
+      TEST_ASSERT_EQUAL(q.at(0), q.front());
     }
     for (int i=0; i<10; ++i){
-	TEST_ASSERT_EQUAL(q.at(0), q.front());
-        q.pop();
+      TEST_ASSERT_EQUAL(q.at(0), q.front());
+      q.pop();
     }
 }
 
@@ -124,8 +124,8 @@ void testPoppingInOrderBackIsNewest(void)
 	q.push(i);
     }
     for (int i=0; i<10; ++i){
-	TEST_ASSERT_EQUAL(9, q.back());
-        q.pop();
+      TEST_ASSERT_EQUAL(9, q.back());
+      q.pop();
     }
 }
 
@@ -133,12 +133,12 @@ void testBackIsHighestIndex(void)
 {
     FQueue q(32, buf);
     for (int i=0; i<10; ++i){
-	q.push(i);
-        TEST_ASSERT_EQUAL(q.at(q.size()-1), q.back());
+      q.push(i);
+      TEST_ASSERT_EQUAL(q.at(q.size()-1), q.back());
     }
     for (int i=0; i<10; ++i){
-	TEST_ASSERT_EQUAL(q.at(q.size()-1), q.back());
-        q.pop();
+      TEST_ASSERT_EQUAL(q.at(q.size()-1), q.back());
+      q.pop();
     }
 }
 
@@ -146,8 +146,8 @@ void testFillQueue(void)
 {
     FQueue q(32, buf);
     for (int i=0; i<32; ++i){
-	TEST_ASSERT_FALSE(q.full());
-	q.push(i);
+      TEST_ASSERT_FALSE(q.full());
+      q.push(i);
     }
     TEST_ASSERT_TRUE(q.full());
 }
@@ -165,14 +165,14 @@ void testLookupElementsByIndex(void)
 {
     FQueue q(32, buf);
     for (int i=0; i<10; ++i){
-	q.push(42);
-	q.pop();
-    }    
-    for (int i=0; i<10; ++i){
-	q.push(i);
+      q.push(42);
+      q.pop();
     }
     for (int i=0; i<10; ++i){
-	TEST_ASSERT_EQUAL(i, q.at(i));
+      q.push(i);
+    }
+    for (int i=0; i<10; ++i){
+      TEST_ASSERT_EQUAL(i, q.at(i));
     }
 }
 
@@ -180,7 +180,16 @@ void testLookupOutOfRangeIsZero(void)
 {
     FQueue q(32, buf);
     for (int i=-5; i<42; ++i){
-	TEST_ASSERT_EQUAL(0, q.at(i));
-    }    
+      TEST_ASSERT_EQUAL(0, q.at(i));
+    }
 }
-   
+
+void testFlushQueueEmptiesQueue(void)
+{
+  FQueue q(32, buf);
+  for (int i=0; i<10; ++i){
+    q.push(42);
+  }
+  q.flush();
+  TEST_ASSERT_TRUE(q.empty());
+}

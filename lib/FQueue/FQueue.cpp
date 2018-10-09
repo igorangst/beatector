@@ -82,3 +82,9 @@ unsigned long FQueue::at(const int idx) const
     }
     return _buf[(_rptr + idx) % _capacity];
 }
+
+void FQueue::flush()
+{
+  _rptr = _wptr;
+  _size = 0;
+}
