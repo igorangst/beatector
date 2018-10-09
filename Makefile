@@ -7,10 +7,10 @@ UNITY=Unity
 UNITY_FILES=$(UNITY)/src/unity.c 
 
 # Source files
-SRCS=$(UNITY_FILES) $(wildcard src/*.c) $(wildcard lib/FQueue/*.cpp)
+SRCS=$(UNITY_FILES) $(wildcard src/*.c) $(wildcard lib/FQueue/*.cpp) $(wildcard lib/BeatPredictor/*.cpp)
 
 # Add additional tests here
-TESTS = TestFQueue
+TESTS = TestFQueue TestBeatPredictor
 
 # Test sources and runners. Don't touch the following lines!
 TEST_SRCS=$(addprefix test/,$(addsuffix(.cpp, $(TESTS))))
@@ -18,7 +18,7 @@ RUNNERS=$(addprefix test/,$(addsuffix(_Runner.c, $(TESTS))))
 TARGETS=$(addprefix run_, $(TESTS))
 
 # Include directories
-INCL=-Isrc -Ilib/FQueue -I$(UNITY)/src 
+INCL=-Isrc -Ilib/FQueue -Ilib/BeatPredictor -I$(UNITY)/src 
 
 
 .PHONY: all clean test build upload run_tests build coverflags
